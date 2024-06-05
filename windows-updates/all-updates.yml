@@ -1,0 +1,11 @@
+--- #Esta playbook tiene que ser ejecutada con las credenciales de WinRM
+- name: Update all
+  hosts: "{{group_name}}"
+  tasks:
+#    - name: Example from an Ansible Playbook
+#      ansible.builtin.ping:
+      
+    - name: Install all updates
+      ansible.windows.win_updates:
+        category_names: '*'
+        reboot: true

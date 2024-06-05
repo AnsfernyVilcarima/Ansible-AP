@@ -1,0 +1,21 @@
+- name: "Chocolatey"
+  hosts: "{{group_name}}"
+  tasks:
+  - name: Install chocolatey #Instalacion del chocolatey
+    chocolatey.chocolatey.win_chocolatey:
+      name:
+      - chocolatey
+      - chocolatey-core.extension
+      state: present
+
+  - name: Kill running Chrome processes #Detiene todos los procesos de Chrome
+    win_shell: 
+        Stop-Process -Name "chrome" -Force
+    ignore_errors: yes
+
+  - name: Install chocolatey
+    chocolatey.chocolatey.win_chocolatey:
+      name:
+      - googlechrome
+      state: latest
+      ignore_checksums: yes

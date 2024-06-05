@@ -1,0 +1,11 @@
+--- #Esta playbook tiene que ser ejecutada con las credenciales de WinRM
+- name: Notificar que se actualizaran las maquinas usando Toast
+  hosts: "{{group_name}}"
+  tasks:
+    - name: Notifiacion Toast 
+      community.windows.win_toast:
+        expire: 60
+        title: Titulo de Prueba #Titulo de la notificacion
+        msg: Se actualizaran las maquinas en 5 minutos. #Mensaje de la notificacion
+      async: 60
+      poll: 0

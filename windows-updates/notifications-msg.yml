@@ -1,0 +1,9 @@
+--- #Esta playbook tiene que ser ejecutada con las credenciales de WinRM
+- name: Notificar que se actualizaran las maquinas usando MSG
+  hosts: "{{group_name}}"
+  tasks:
+    - name: Notifiacion MSG 
+      community.windows.win_msg:
+        display_seconds: 60 #Tiempo que se mostrara el mensaje
+        title: Titulo de Prueba #Titulo de la notificacion
+        msg: Se actualizaran las maquinas en 5 minutos. #Mensaje de la notificacion

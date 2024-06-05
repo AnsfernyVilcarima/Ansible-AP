@@ -1,0 +1,98 @@
+--- #Esta playbook tiene que ser ejecutada con las credenciales de VMWARE
+- name: Instalar actualizaciones VM con PSWindowsUpdate mediante VMware VM Shell
+  hosts: "{{ group_name }}"
+  gather_facts: false
+  tasks:
+    - name: Instalar NuGet  #Instala la dependencia de NuGet  para poder instalar PSWindowsUpdate
+      community.vmware.vmware_vm_shell:
+        datacenter: "{{ datacenter }}"
+        folder: "/{{ datacenter }}/vm/CTX/AKCV"
+        vm_id: "{{ vm_name }}"
+        vm_username: {{ local_user }}
+        vm_password: {{ password }}
+        vm_shell: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+        vm_shell_args: "Install-PackageProvider NuGet -Force"
+      delegate_to: localhost
+      register: shell_command_output
+
+    - name: Pausa provisional
+      pause:
+        seconds: 30
+    
+    - name: Instalar PSWindowsUpdate #Instala el modulo de PSWindowsUpdate
+      community.vmware.vmware_vm_shell:
+        datacenter: "{{ datacenter }}"
+        folder: "/{{ datacenter }}/vm/CTX/AKCV"
+        vm_id: "{{ vm_name }}"
+        vm_username: {{ local_user }}
+        vm_password: {{ password }}
+        vm_shell: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+        vm_shell_args: "Install-Module -Name PSWindowsUpdate -Scope CurrentUser -Force -Confirm:$False"
+      delegate_to: localhost
+      register: shell_command_output
+
+    - name: Pausa provisional #Pausa para que se instale el modulo (Depende del ancho de banda)
+      pause:
+        seconds: 120 #Valor de 2 minutos / Editable
+
+    - name: GET PSWindowsUpdate #Verifica que se haya instalado el modulo
+      community.vmware.vmware_vm_shell:
+        datacenter: "{{ datacenter }}"
+        folder: "/{{ datacenter }}/vm/CTX/AKCV"
+        vm_id: "{{ vm_name }}"
+        vm_username: {{ local_user }}
+        vm_password: {{ password }}
+        vm_shell: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+        vm_shell_args: "Get-Package -Name PSWindowsUpdate"
+      delegate_to: localhost
+      register: shell_command_output
+
+    - name: Pausa provisional
+      pause:
+        seconds: 5
+    
+    - name: Politica
+      community.vmware.vmware_vm_shell:
+        datacenter: "{{ datacenter }}"
+        folder: "/{{ datacenter }}/vm/CTX/AKCV"
+        vm_id: "{{ vm_name }}"
+        vm_username: {{ local_user }}
+        vm_password: {{ password }}
+        vm_shell: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+        vm_shell_args: "Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force -Confirm:$False"
+      delegate_to: localhost
+      register: shell_command_output
+
+    - name: Pausa provisional
+      pause:
+        seconds: 5
+
+    - name: Escanear PC para actualizaciones #Escanea el equipo para ver que actualizaciones tiene pendientes
+      community.vmware.vmware_vm_shell:
+        datacenter: "{{ datacenter }}"
+        folder: "/{{ datacenter }}/vm/CTX/AKCV"
+        vm_id: "{{ vm_name }}"
+        vm_username: {{ local_user }}
+        vm_password: {{ password }}
+        vm_shell: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+        vm_shell_args: "Get-WindowsUpdate -Scope CurrentUser -Force -Confirm:$False"
+      delegate_to: localhost
+      register: shell_command_output
+
+    - name: Pausa provisional
+      pause:
+        seconds: 60
+    
+    - name: Instalar actualizaciones especificas #Instalacion de actualizaciones especificas formato -> KBXXXXXX, KBXXXXXX, etc
+      community.vmware.vmware_vm_shell:
+        datacenter: "{{ datacenter }}"
+        folder: "/{{ datacenter }}/vm/CTX/AKCV"
+        vm_id: "{{ vm_name }}"
+        vm_username: {{ local_user }}
+        vm_password: {{ password }}
+        vm_shell: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+        vm_shell_args: "Get-WindowsUpdate -KBArticleID {{ kb_list }} -Install -Confirm:$False"
+      delegate_to: localhost
+      register: shell_command_output
+
+
